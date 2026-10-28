@@ -1,0 +1,13 @@
+AndroidLiquidGlass reference
+https://github.com/Kyant0/AndroidLiquidGlass
+Android branch, commit 896a94a3ade1cc1a940b92365f942a34971fecda
+License: Apache-2.0 (AndroidLiquidGlass-Apache-2.0.txt)
+
+shaders/liquid_glass_scene.frag adapts the circular refraction profile and
+seven-channel chromatic sampling weights from backdrop/Shaders.kt.
+Changes: Flutter runtime shader syntax, dual scene textures, capsule geometry,
+scene coordinate transforms and custom reflection/shadow composition.
+
+assets/reference/system_home_screen_light.webp is copied from the reference
+catalog solely as a shared visual comparison fixture, not as application artwork.
+The asset depicts an Apple home screen; third-party marks remain with their owners.

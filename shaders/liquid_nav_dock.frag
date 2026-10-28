@@ -74,10 +74,11 @@ void main() {
     fragColor = original;
     return;
   }
-  float edgeFactor = 1.0 - smoothstep(0.0, edgeHeight, edgeDepth);
+  float edge = 1.0 - edgeDepth / edgeHeight;
+  float edgeFactor = 1.0 - sqrt(max(0.0, 1.0 - edge * edge));
   vec2 normal = normalize(gradSdRoundedRect(centeredCoord, halfSize, radius));
   float displacement = edgeFactor * uRefraction;
-  vec2 refractedCoord = coord + normal * displacement;
+  vec2 refractedCoord = coord - normal * displacement;
 
   // 色散只留在 Dock 的折射带，中心保持原色，避免大面积彩虹噪声。
   vec2 dispersion = normal * displacement * uChromatic * edgeFactor;
@@ -85,6 +86,6 @@ void main() {
   vec4 green = texture(uBackdrop, textureUv(refractedCoord));
   vec4 blue = texture(uBackdrop, textureUv(refractedCoord - dispersion));
   vec3 refracted = vec3(red.r, green.g, blue.b);
-  vec3 color = mix(original.rgb, refracted, activation * edgeFactor);
+  vec3 color = mix(original.rgb, refracted, activation);
   fragColor = vec4(color, original.a);
 }

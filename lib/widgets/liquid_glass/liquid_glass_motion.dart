@@ -58,12 +58,12 @@ LiquidGlassDragDeformation liquidGlassDragDeformationFor({
 }) {
   final velocityIntensity =
       (velocityPixelsPerSecond.abs() / math.max(normalization, 1.0))
-          .clamp(0.0, 0.08)
+          .clamp(0.0, 1.0)
           .toDouble();
   // 边界继续拖拽时 position 已被 clamp，额外保留一段弹性形变，保证首尾
   // Tab 向左、向右都能给出明确反馈，而不是像“拖不动”一样没有动效。
   final edgeIntensity = edgeCompression.clamp(0.0, 1.0).toDouble() * 0.04;
-  final intensity = (velocityIntensity + edgeIntensity).clamp(0.0, 0.12);
+  final intensity = (velocityIntensity + edgeIntensity).clamp(0.0, 1.0);
 
   return LiquidGlassDragDeformation(
     intensity: intensity,
@@ -71,8 +71,8 @@ LiquidGlassDragDeformation liquidGlassDragDeformationFor({
         ? 0.0
         : velocityPixelsPerSecond.sign,
     // 横向拉伸、纵向压扁是一组互补参数，左右方向共享同一力度。
-    horizontalScale: 1.0 + intensity * 0.58,
-    verticalScale: 1.0 - intensity * 0.22,
+    horizontalScale: 1.0 / (1.0 - (intensity * 0.75).clamp(0.0, 0.2)),
+    verticalScale: 1.0 - (intensity * 0.25).clamp(0.0, 0.2),
   );
 }
 
@@ -94,8 +94,7 @@ LiquidGlassMotionState liquidGlassMotionFor({
             .clamp(0.0, 1.0)
             .toDouble();
   final direction = speed < 0.01 ? 0.0 : velocityPixelsPerSecond.sign;
-  // 默认 idle 是 frosted glass；idleOpticalActivation 仅作为 QA/实验开关，
-  // 让生产默认不会在没有交互时持续渲染液态折射。
+  // 光学材质与动画分离：静止或减少动态效果时仍保留真实折射。
   final idleActivation = tuning.idleOpticalActivation
       .clamp(0.0, 1.0)
       .toDouble();
@@ -174,11 +173,7 @@ LiquidGlassMotionState liquidGlassMotionFor({
       chromaticScale.clamp(0.0, 3.0) *
       velocityChromaticBoost;
 
-  final dockActivation = opticalActivation.clamp(0.0, 1.0).toDouble();
-  final dockRefraction =
-      tuning.dockRefraction *
-      ui.lerpDouble(0.82, 1.0, dockActivation)! *
-      (1.0 + speed * 0.04);
+  final dockRefraction = tuning.dockRefraction * (1.0 + speed * 0.04);
   final dockChromatic = tuning.dockChromatic;
 
   final positionSignal = (visualPosition - currentIndex)

@@ -44,7 +44,14 @@ double liquidGlassSurfacePositionFor({
   // 拖拽中快速跟随，但保留几像素的反向滞后；松手后降低响应率，形成
   // 一小段可中断的表面回弹，而不会拖慢业务位置或命中区域。
   final response = dragging ? 0.72 : 0.44;
-  return previousPosition + (target - previousPosition) * response;
+  final next = previousPosition + (target - previousPosition) * response;
+  // Pointer events can jump several tabs in one frame. A fixed interpolation
+  // alone leaves the lens stranded when no further MOVE arrives.
+  if (dragging && itemWidth > 0) {
+    final maxLag = liquidGlassSurfaceMaxLagPixels / itemWidth;
+    return next.clamp(logicalPosition - maxLag, logicalPosition + maxLag);
+  }
+  return next;
 }
 
 double liquidGlassSurfaceLagPixels({

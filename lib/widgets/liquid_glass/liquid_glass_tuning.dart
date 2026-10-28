@@ -35,8 +35,8 @@ class LiquidGlassTuning {
     this.pressedScale = 78.0 / 56.0,
     this.overscanX = 18.0,
     this.overscanY = 16.0,
-    this.refractionHeight = 8.0,
-    this.refraction = 7.2,
+    this.refractionHeight = 18.0,
+    this.refraction = 26.0,
     this.verticalRefractionScale = 1.0,
     this.refractionBandStart = 0.60,
     this.refractionBandPeak = 0.80,
@@ -44,37 +44,35 @@ class LiquidGlassTuning {
     // 保留字段以兼容 QA 配置文件；V8 shader 不再使用中心放大。
     this.magnification = 1.0,
     this.magnificationRadius = 0.66,
-    this.chromatic = 0.14,
+    this.chromatic = 0.28,
     this.chromaticStart = 0.86,
     this.rimStrength = 0.12,
     this.lightStrength = 0.20,
     this.velocityNormalization = 1000.0,
     this.flowStrength = 0.72,
-    // Dock 降低白色覆盖，保留背景层次给 shader 折射；这不是减少动效，
-    // 而是把“玻璃”从厚重磨砂恢复成有透光和重量的材质。
-    this.dockAlpha = 0.20,
-    this.dockBlur = 8.0,
+    // 保留可辨认的背景线条，曲面上的位移才有可见的参照。
+    this.dockAlpha = 0.16,
+    this.dockBlur = 2.0,
     this.dockLensHeight = 24.0,
     this.dockLensAmount = 24.0,
-    // 常态只显示 Dock / Selection 的毛玻璃；只有 press、drag、settling
-    // 或 collapsing 阶段才打开液态折射。QA 仍可手动调高此值预览 idle optical。
-    this.idleOpticalActivation = 0.0,
-    this.idleRefractionScale = 0.0,
-    this.pressedRefractionScale = 1.08,
-    this.dragRefractionScale = 1.36,
-    this.idleChromaticScale = 0.0,
-    this.pressedChromaticScale = 0.55,
-    this.dragChromaticScale = 0.65,
-    this.dockRefraction = 7.0,
-    this.dockChromatic = 0.0,
-    this.dockRefractionHeight = 10.0,
-    this.dockSaturation = 1.04,
-    this.dockContrast = 1.01,
+    // 静止也保留透镜厚度，按压和拖动连续增强。
+    this.idleOpticalActivation = 0.8,
+    this.idleRefractionScale = 0.8,
+    this.pressedRefractionScale = 1.0,
+    this.dragRefractionScale = 1.15,
+    this.idleChromaticScale = 0.65,
+    this.pressedChromaticScale = 1.0,
+    this.dragChromaticScale = 1.0,
+    this.dockRefraction = 24.0,
+    this.dockChromatic = 0.025,
+    this.dockRefractionHeight = 18.0,
+    this.dockSaturation = 1.15,
+    this.dockContrast = 1.0,
     this.dockSpecularStrength = 0.46,
     this.dockRecoilDistance = 3.5,
     this.dockRecoilStrength = 0.82,
-    this.lensSurfaceAlpha = 0.18,
-    this.lensPressedSurfaceAlpha = 0.06,
+    this.lensSurfaceAlpha = 0.025,
+    this.lensPressedSurfaceAlpha = 0.012,
     this.highlightStrength = 0.90,
     // 中心高光保持局部；四周 edge halo 才是液态玻璃的主高光层。
     this.highlightRadius = 0.82,
@@ -92,7 +90,7 @@ class LiquidGlassTuning {
   );
 
   /// 有意增强的 QA 预设，生产环境不使用。
-  static const strong = LiquidGlassTuning(refraction: 18.0, chromatic: 1.35);
+  static const strong = LiquidGlassTuning(refraction: 36.0, chromatic: 0.65);
 
   final double lensExponent;
   final double lensWidthScale;
@@ -125,8 +123,7 @@ class LiquidGlassTuning {
   final double dockLensHeight;
   final double dockLensAmount;
 
-  /// Idle 默认关闭光学激活，保持 frosted blur；按压、拖拽与切换阶段逐段
-  /// 提升折射与色散，而不是在 phase 之间切换成另一颗静态 indicator。
+  /// 选中透镜的交互光学；底座折射独立控制，静止时仍然生效。
   final double idleOpticalActivation;
   final double idleRefractionScale;
   final double pressedRefractionScale;

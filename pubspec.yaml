@@ -13,7 +13,10 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 flutter:
   uses-material-design: true
+  assets:
+    - assets/reference/system_home_screen_light.webp
   shaders:
+    - shaders/liquid_glass_scene.frag
     - shaders/liquid_nav_lens.frag
     - shaders/liquid_nav_dock.frag
   fonts:

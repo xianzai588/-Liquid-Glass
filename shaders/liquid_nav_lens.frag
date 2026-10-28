@@ -106,7 +106,7 @@ void main() {
   float d = circleMap(1.0 - (-sd / refractionHeight)) * uRefraction;
   float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
   vec2 grad = normalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius));
-  vec2 refractedCoord = coord + d * grad;
+  vec2 refractedCoord = coord - d * grad;
 
   // Kyant's seven-channel chromatic aberration. With chromatic == 0 all
   // seven coordinates collapse to the same sample, preserving base color.
@@ -173,5 +173,5 @@ void main() {
   color.b += purple.b / 3.0;
   color.a += purple.a / 7.0;
 
-  fragColor = color;
+  fragColor = mix(original, color, activation);
 }

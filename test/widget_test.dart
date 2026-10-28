@@ -6,6 +6,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'press lifts the lens and release springs back through its rest size',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(const NavigationDemo());
+      final lens = find.byKey(const ValueKey('bottom-nav-selection'));
+      final dock = tester.getRect(
+        find.byKey(const ValueKey('bottom-nav-floating-dock')),
+      );
+      final resting = tester.getRect(lens);
+      final gesture = await tester.startGesture(resting.center);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      final pressed = tester.getRect(lens);
+      expect(pressed.height, greaterThan(resting.height * 1.35));
+      expect(pressed.top, lessThan(dock.top));
+      await gesture.up();
+      var smallest = pressed.height;
+      for (var frame = 0; frame < 45; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        final height = tester.getRect(lens).height;
+        if (height < smallest) smallest = height;
+      }
+      expect(smallest, lessThan(resting.height));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(lens).height, closeTo(resting.height, .1));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('liquid tabs respond to tap, drag, and rapid retargeting', (
     tester,
   ) async {
@@ -33,6 +64,57 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(title(), '我');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tap travels through the dock with visible lift', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const NavigationDemo());
+    final lens = find.byKey(const ValueKey('bottom-nav-selection'));
+    final resting = tester.getRect(lens);
+    final dock = tester.getRect(
+      find.byKey(const ValueKey('bottom-nav-floating-dock')),
+    );
+    final target = Offset(dock.left + dock.width * .7, dock.center.dy);
+    await tester.tapAt(target);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final moving = tester.getRect(lens);
+    expect(moving.center.dx, greaterThan(resting.center.dx + 20));
+    expect(moving.center.dx, lessThan(target.dx - 10));
+    expect(moving.height, greaterThan(resting.height * 1.1));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(lens).center.dx, closeTo(target.dx, 1));
+    expect(tester.getRect(lens).height, closeTo(resting.height, .1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('drag can start on an unselected tab', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const NavigationDemo());
+    final dock = tester.getRect(
+      find.byKey(const ValueKey('bottom-nav-floating-dock')),
+    );
+    Offset tab(int index) =>
+        Offset(dock.left + dock.width * (index + .5) / 5, dock.center.dy);
+    final gesture = await tester.startGesture(tab(2));
+    await tester.pump(const Duration(milliseconds: 80));
+    await gesture.moveTo(tab(3), timeStamp: const Duration(milliseconds: 160));
+    await tester.pump(const Duration(milliseconds: 80));
+    final lens = tester.getRect(
+      find.byKey(const ValueKey('bottom-nav-selection')),
+    );
+    expect(lens.center.dx, closeTo(tab(3).dx, 8));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('current-page-title')))
+          .data,
+      '校园',
+    );
     expect(tester.takeException(), isNull);
   });
 
